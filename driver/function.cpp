@@ -25,6 +25,7 @@ Function::Function(const std::string &name, Node *funcdef_ast, Symbol *symbol)
   , m_funcdef_ast(funcdef_ast)
   , m_symbol(symbol)
 {
+  m_vreg_alloc = new VregAllocator();
 }
 
 Function::~Function() {
@@ -56,4 +57,8 @@ std::shared_ptr<InstructionSequence> Function::get_ll_iseq() const {
 
 void Function::set_ll_iseq(std::shared_ptr<InstructionSequence> ll_iseq) {
   m_ll_iseq = ll_iseq;
+}
+
+VregAllocator* Function::get_vreg_alloc() {
+  return m_vreg_alloc;
 }

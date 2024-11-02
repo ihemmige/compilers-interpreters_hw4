@@ -44,6 +44,9 @@ private:
   std::shared_ptr<InstructionSequence> m_hl_iseq; // high-level code
   std::shared_ptr<InstructionSequence> m_ll_iseq; // low-level code
 
+  VregAllocator *m_vreg_alloc;
+
+
 public:
   //! Constructor.
   //! @param name the name of the function
@@ -80,6 +83,7 @@ public:
   //! @param shared pointer to the low-level InstructionSequence
   void set_ll_iseq(std::shared_ptr<InstructionSequence> ll_iseq);
 
+  VregAllocator* get_vreg_alloc();
 };
 
 #endif // FUNCTION_H

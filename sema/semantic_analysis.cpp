@@ -207,7 +207,9 @@ void SemanticAnalysis::visit_function_declaration(Node *n) {
 
   // return to enclosing scope and add function to that symbol table
   leave_scope();
-  m_cur_symtab->add_entry(n->get_loc(), SymbolKind::FUNCTION, func_name, n->get_type());
+  m_cur_symtab->add_entry(n->get_loc(), SymbolKind::FUNCTION, func_name, n->get_type()); // symbol table for function
+  n->get_kid(1)->set_symbol(m_cur_symtab->lookup_local(func_name)); // link this function node with symbol in enclosing symtab
+  n->get_kid(1)->get_symbol()->set_func_symtab(get_symbol_table("function " + func_name)); // link symbol with its function symtab
 }
 
 void SemanticAnalysis::visit_function_parameter_list(Node *n) {
@@ -487,7 +489,7 @@ void SemanticAnalysis::visit_variable_ref(Node *n) {
   if (!symbol) // undefined variable
     SemanticError::raise(n->get_loc(),"Variable not defined");
   n->set_str(n->get_kid(0)->get_str());
-  n->set_type(symbol->get_type());
+  n->set_symbol(symbol);
 }
 
 void SemanticAnalysis::visit_literal_value(Node *n) {
