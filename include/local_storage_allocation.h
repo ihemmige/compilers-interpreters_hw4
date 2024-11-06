@@ -78,6 +78,7 @@ public:
 
 private:
   // TODO: add private member functions
+  void find_address_of(Node *n);
 };
 
 #endif // LOCAL_STORAGE_ALLOCATION_H

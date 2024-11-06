@@ -22,6 +22,12 @@
 #include "node.h"
 #include "symtab.h"
 #include "local_storage_allocation.h"
+#include <ast.h>
+
+#include <iostream>
+using namespace std;
+
+const int TOK_AMPERSAND = 278;
 
 LocalStorageAllocation::LocalStorageAllocation()
   : m_total_local_storage(0U)
@@ -41,10 +47,49 @@ void LocalStorageAllocation::allocate_storage(std::shared_ptr<Function> function
 
 void LocalStorageAllocation::visit_function_definition(Node *n) {
   // TODO: implement
+  SymbolTable* func_table = n->get_kid(1)->get_symbol()->get_func_symtab();
+
+  visit(n->get_kid(3)); // visit statement list
+
+  m_function->get_vreg_alloc()->alloc_local();
+  int num_alloc = VREG_FIRST_ARG;
+  // don't allocate argument registers
+  while (num_alloc + 1 < VREG_FIRST_LOCAL) {
+    num_alloc = m_function->get_vreg_alloc()->alloc_local();
+  }
+
+  // make storage decision based on types (and whether address-of is taken)
+  for (auto iter = func_table->cbegin(); iter != func_table->cend(); iter++) {
+    Symbol *sym = *iter;    
+    if (sym->get_type()->is_array() || sym->get_type()->is_struct()) {
+      sym->set_align(m_storage_calc.add_field(sym->get_type()));
+    } else if (sym->get_address_of()) {
+      sym->set_align(m_storage_calc.add_field(sym->get_type()));
+    } else {
+      sym->set_vreg(m_function->get_vreg_alloc()->alloc_local());
+    }
+  }
+
+  m_storage_calc.finish();
+  n->set_total_local_storage(m_storage_calc.get_size());
 }
 
 void LocalStorageAllocation::visit_statement_list(Node *n) {
   // TODO: implement
+  find_address_of(n);
+}
+
+void LocalStorageAllocation::find_address_of(Node *n) {
+  int tag = n->get_tag();
+  if (tag == AST_UNARY_EXPRESSION && n->get_kid(0)->get_tag() == TOK_AMPERSAND) {
+    Symbol* var = n->get_kid(1)->get_symbol();
+    var->set_address_of();
+  } else {
+    // recursively visit kids
+    for (auto iter = n->cbegin(); iter != n->cend(); iter++) {
+      find_address_of(*iter);
+    }
+  }
 }
 
 // TODO: implement private member functions
