@@ -23,6 +23,8 @@
 #include "exceptions.h"
 #include "symtab.h"
 
+#include <iostream>
+
 ////////////////////////////////////////////////////////////////////////
 // Symbol implementation
 ////////////////////////////////////////////////////////////////////////
@@ -162,4 +164,36 @@ void SymbolTable::remove_symbol(int idx) {
   m_symbols.erase(m_symbols.begin() + idx);
   m_lookup.erase(symbol_to_delete->get_name());
   delete symbol_to_delete;
+}
+
+SymbolTable* Symbol::get_func_symtab() const {
+  return m_func_symtab;
+};
+
+void Symbol::set_func_symtab(SymbolTable *symtab) {
+  m_func_symtab = symtab;
+}
+
+void Symbol::set_vreg(int vreg) {
+  m_vreg = vreg;
+}
+
+int Symbol::get_vreg() {
+  return m_vreg;
+}
+
+void Symbol::set_align(int align) {
+  m_align = align;
+}
+
+int Symbol::get_align() {
+  return m_align;
+}
+
+bool Symbol::get_address_of() {
+  return m_address_of;
+}
+
+void Symbol::set_address_of() {
+  m_address_of = true;
 }

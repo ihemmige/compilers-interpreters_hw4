@@ -45,6 +45,7 @@ private:
   std::shared_ptr<Type> m_type;
   Symbol* m_symbol;
   bool literal;
+  unsigned m_total_local_storage;
 
 public:
   NodeBase();
@@ -58,6 +59,8 @@ public:
   void override_type(const std::shared_ptr<Type> &type);
   void make_literal();
   bool is_literal();
+  void set_total_local_storage(unsigned size);
+  unsigned get_total_local_storage();
 };
 
 #endif // NODE_BASE_H

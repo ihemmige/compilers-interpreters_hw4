@@ -28,6 +28,8 @@
 #include "location.h"
 #include "type.h"
 
+#include "vreg_allocator.h"
+
 class SymbolTable;
 
 enum class SymbolKind {
@@ -43,6 +45,11 @@ private:
   std::shared_ptr<Type> m_type;
   SymbolTable *m_symtab;
 
+  SymbolTable* m_func_symtab; // used only for symbols that are function names
+  int m_vreg = -1;
+  int m_align = -1;
+  bool m_address_of = false;
+
   // value semantics prohibited
   Symbol(const Symbol &);
   Symbol &operator=(const Symbol &);
@@ -55,6 +62,15 @@ public:
   const std::string &get_name() const;
   std::shared_ptr<Type> get_type() const;
   SymbolTable *get_symtab() const;
+
+  SymbolTable* get_func_symtab() const;
+  void set_func_symtab(SymbolTable *symtab);
+  void set_vreg(int vreg);
+  int get_vreg();
+  void set_align(int align);
+  int get_align();
+  void set_address_of();
+  bool get_address_of();
 };
 
 class SymbolTable {

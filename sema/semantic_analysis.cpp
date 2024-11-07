@@ -31,6 +31,7 @@
 #include <unordered_set>
 
 #include <iostream>
+using namespace std;
 
 SemanticAnalysis::SemanticAnalysis(const Options &options)
   : m_options(options)
@@ -250,13 +251,13 @@ void SemanticAnalysis::visit_function_parameter(Node *n) {
     case AST_POINTER_DECLARATOR: {
       visit_pointer_declarator(decl);
       m_cur_symtab->add_entry(n->get_loc(), SymbolKind::VARIABLE, decl->get_str(), decl->get_type());
-      n->set_type(decl->get_type());
+      n->set_symbol(m_cur_symtab->lookup_local(decl->get_str()));
       break;
     }
     case AST_NAMED_DECLARATOR: {
       visit_named_declarator(decl);
       m_cur_symtab->add_entry(n->get_loc(), SymbolKind::VARIABLE, decl->get_str(), decl->get_type());
-      n->set_type(decl->get_type());
+      n->set_symbol(m_cur_symtab->lookup_local(decl->get_str()));
       break;
     }
     case AST_ARRAY_DECLARATOR: {
@@ -272,7 +273,7 @@ void SemanticAnalysis::visit_function_parameter(Node *n) {
 void SemanticAnalysis::visit_statement_list(Node *n) {
   enter_scope("block " + std::to_string(n->get_loc().get_line())); // block is named based on the line it starts
   // visit each statement
-  for (auto it = n->cbegin(); it != n->cend(); it++) { 
+  for (auto it = n->cbegin(); it != n->cend(); it++) {
     visit(*it);
   }
   leave_scope(); // return to enclosing scope

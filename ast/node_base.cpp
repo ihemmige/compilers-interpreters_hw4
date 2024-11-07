@@ -75,3 +75,11 @@ void NodeBase::make_literal() {
 bool NodeBase::is_literal() {
   return this->literal;
 }
+
+void NodeBase::set_total_local_storage(unsigned size) {
+  m_total_local_storage = size;
+}
+
+unsigned NodeBase::get_total_local_storage() {
+  return m_total_local_storage;
+}
