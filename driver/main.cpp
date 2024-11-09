@@ -42,6 +42,10 @@
 #include "exceptions.h"
 #include "options.h"
 
+// TODO REMOVE
+#include <iostream>
+using namespace std;
+
 //! @file
 //! Driver program for `nearly_cc`.
 
@@ -404,6 +408,9 @@ int process_source_file(Options &options, const std::string &filename) {
 
   // We are now committed to performing semantic analysis
   unit.get_semantic_analysis().visit(unit.get_ast());
+
+  // TODO REMOVE
+  // print_symbol_tables(unit.get_semantic_analysis());
 
   if (ir_kind_goal == IRKind::SYMBOL_TABLE) {
     // Just print contents of symbol tables
