@@ -46,6 +46,7 @@ private:
   Symbol* m_symbol;
   bool literal;
   unsigned m_total_local_storage;
+  std::string str_lit_name;
 
 public:
   NodeBase();
@@ -61,6 +62,8 @@ public:
   bool is_literal();
   void set_total_local_storage(unsigned size);
   unsigned get_total_local_storage();
+  void set_str_lit_name(std::string value);
+  std::string get_str_lit_name();
 };
 
 #endif // NODE_BASE_H

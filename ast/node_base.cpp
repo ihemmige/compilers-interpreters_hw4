@@ -83,3 +83,11 @@ void NodeBase::set_total_local_storage(unsigned size) {
 unsigned NodeBase::get_total_local_storage() {
   return m_total_local_storage;
 }
+
+void NodeBase::set_str_lit_name(std::string value) {
+  str_lit_name = value;
+}
+
+std::string NodeBase::get_str_lit_name() {
+  return str_lit_name;
+}

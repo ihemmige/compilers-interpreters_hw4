@@ -62,3 +62,19 @@ void Function::set_ll_iseq(std::shared_ptr<InstructionSequence> ll_iseq) {
 VregAllocator* Function::get_vreg_alloc() {
   return m_vreg_alloc;
 }
+
+void Function::set_num_vregs(int count) {
+  m_num_vregs = count;
+}
+
+int Function::get_num_vregs() {
+  return m_num_vregs;
+}
+
+void Function::set_total_local_storage(int size) {
+  m_total_local_storage = size;
+}
+
+int Function::get_total_local_storage() {
+  return m_total_local_storage;
+}

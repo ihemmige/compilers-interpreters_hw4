@@ -24,9 +24,6 @@
 #include "local_storage_allocation.h"
 #include <ast.h>
 
-#include <iostream>
-using namespace std;
-
 const int TOK_AMPERSAND = 278;
 
 LocalStorageAllocation::LocalStorageAllocation()
@@ -46,12 +43,10 @@ void LocalStorageAllocation::allocate_storage(std::shared_ptr<Function> function
 }
 
 void LocalStorageAllocation::visit_function_definition(Node *n) {
-  // TODO: implement
   SymbolTable* func_table = n->get_kid(1)->get_symbol()->get_func_symtab();
-
   visit(n->get_kid(3)); // visit statement list
 
-  m_function->get_vreg_alloc()->alloc_local();
+  m_function->get_vreg_alloc()->alloc_local(); // don't allocate vr0
   int num_alloc = VREG_FIRST_ARG;
   // don't allocate argument registers
   while (num_alloc + 1 < VREG_FIRST_LOCAL) {
@@ -72,18 +67,22 @@ void LocalStorageAllocation::visit_function_definition(Node *n) {
 
   m_storage_calc.finish();
   n->set_total_local_storage(m_storage_calc.get_size());
+  m_function->set_total_local_storage(m_storage_calc.get_size());
 }
 
 void LocalStorageAllocation::visit_statement_list(Node *n) {
-  // TODO: implement
+  // check for address-of operator
   find_address_of(n);
 }
 
+// helper function recursively visits nodes, and marks any variables that have address-of taken
 void LocalStorageAllocation::find_address_of(Node *n) {
   int tag = n->get_tag();
   if (tag == AST_UNARY_EXPRESSION && n->get_kid(0)->get_tag() == TOK_AMPERSAND) {
     Symbol* var = n->get_kid(1)->get_symbol();
-    var->set_address_of();
+    if (var) { // if the node has a symbol, set its address-of flag
+      var->set_address_of();
+    }
   } else {
     // recursively visit kids
     for (auto iter = n->cbegin(); iter != n->cend(); iter++) {
@@ -91,5 +90,3 @@ void LocalStorageAllocation::find_address_of(Node *n) {
     }
   }
 }
-
-// TODO: implement private member functions

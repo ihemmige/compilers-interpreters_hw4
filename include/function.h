@@ -45,7 +45,8 @@ private:
   std::shared_ptr<InstructionSequence> m_ll_iseq; // low-level code
 
   VregAllocator *m_vreg_alloc;
-
+  int m_num_vregs = 0;
+  int m_total_local_storage = 0;
 
 public:
   //! Constructor.
@@ -84,6 +85,10 @@ public:
   void set_ll_iseq(std::shared_ptr<InstructionSequence> ll_iseq);
 
   VregAllocator* get_vreg_alloc();
+  void set_num_vregs(int count);
+  int get_num_vregs();
+  void set_total_local_storage(int size);
+  int get_total_local_storage();
 };
 
 #endif // FUNCTION_H

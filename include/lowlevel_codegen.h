@@ -54,6 +54,16 @@ private:
   std::shared_ptr<InstructionSequence> translate_hl_to_ll(std::shared_ptr<InstructionSequence> hl_iseq);
   void translate_instruction(Instruction *hl_ins, std::shared_ptr<InstructionSequence> ll_iseq);
   Operand get_ll_operand(Operand hl_opcode, int size, std::shared_ptr<InstructionSequence> ll_iseq);
+
+  // Operand LowLevelCodeGen::generate_ll_oper(Operand oper)
+  Operand generate_stack_oper(Operand oper);
+  void handle_arith(Instruction *hl_ins, std::shared_ptr<InstructionSequence> ll_iseq);
+  void handle_move(Instruction *hl_ins, std::shared_ptr<InstructionSequence> ll_iseq);
+  void handle_comp(Instruction *hl_ins, std::shared_ptr<InstructionSequence> ll_iseq);
+  void handle_div(Instruction *hl_ins, std::shared_ptr<InstructionSequence> ll_iseq, bool is_mod);
+  void handle_localaddr(Instruction *hl_ins, std::shared_ptr<InstructionSequence> ll_iseq);
+  void handle_neg(Instruction *hl_ins, std::shared_ptr<InstructionSequence> ll_iseq);
+  void handle_sconv(Instruction *hl_ins, std::shared_ptr<InstructionSequence> ll_iseq);
 };
 
 #endif // LOWLEVEL_CODEGEN_H

@@ -30,9 +30,6 @@
 #include "semantic_analysis.h"
 #include <unordered_set>
 
-#include <iostream>
-using namespace std;
-
 SemanticAnalysis::SemanticAnalysis(const Options &options)
   : m_options(options)
   , m_global_symtab(new SymbolTable(nullptr, "global")) {
@@ -283,8 +280,11 @@ void SemanticAnalysis::visit_return_expression_statement(Node *n) {
   std::shared_ptr<Type> expected_type = m_cur_symtab->get_fn_type()->get_base_type(); // return type of function whose symbol table we're in
   visit(n->get_kid(0)); // generate the return value
   std::shared_ptr<Type> actual_type = n->get_kid(0)->get_type(); // actual return type
-  if (expected_type->as_str() != actual_type->as_str()) // ensure return types match
-    SemanticError::raise(n->get_loc(),"Return value is wrong type");
+  if (expected_type->as_str() == "int" && actual_type->as_str() == "char") { // can promote char to int
+    // THIS ALLOWS CHAR TO INT PROMOTION
+  } else if (expected_type->as_str() != actual_type->as_str()) { // ensure return types match
+    SemanticError::raise(n->get_loc(), "Return value is wrong type");
+  }
   n->set_type(actual_type);
 }
 
@@ -344,9 +344,9 @@ void SemanticAnalysis::visit_binary_expression(Node *n) {
     }
   } else { // logical operators
     if (lhs_type->is_array() || lhs_type->is_struct() || lhs_type->is_function())
-      SemanticError::raise(n->get_loc(),"Cannot compare non-numeric value");
+      SemanticError::raise(n->get_loc(), "Cannot compare non-numeric value");
     if (rhs_type->is_array() || rhs_type->is_struct() || rhs_type->is_function())
-      SemanticError::raise(n->get_loc(),"Cannot compare non-numeric value");
+      SemanticError::raise(n->get_loc(), "Cannot compare non-numeric value");
     result_type = std::make_shared<BasicType>(BasicTypeKind::INT, true);
   }
   n->make_literal(); // result of binary expression always literal
@@ -397,11 +397,11 @@ void SemanticAnalysis::visit_function_call_expression(Node *n) {
   const std::string& func_name = n->get_kid(0)->get_kid(0)->get_str();
   Symbol* func_symbol = m_cur_symtab->lookup_recursive(func_name);
   if (!func_symbol) // undefined function
-    SemanticError::raise(n->get_loc(),"Called undefined function");
+    SemanticError::raise(n->get_loc(), "Called undefined function");
 
   std::shared_ptr<Type> func_type = func_symbol->get_type();
   std::shared_ptr<Type> func_return_type = func_type->get_base_type();
-  n->set_type(func_return_type);
+  n->set_type(func_type);
   visit(n->get_kid(1)); // check args
   Node* args = n->get_kid(1);
   if (func_type->get_num_members() != args->get_num_kids()) // ensure correct number of args
@@ -488,7 +488,7 @@ void SemanticAnalysis::visit_array_element_ref_expression(Node *n) {
 void SemanticAnalysis::visit_variable_ref(Node *n) {
   Symbol* symbol = m_cur_symtab->lookup_recursive(n->get_kid(0)->get_str()); // find variable's symbol by name
   if (!symbol) // undefined variable
-    SemanticError::raise(n->get_loc(),"Variable not defined");
+    SemanticError::raise(n->get_loc(), "Variable not defined");
   n->set_str(n->get_kid(0)->get_str());
   n->set_symbol(symbol);
 }
@@ -529,7 +529,7 @@ SymbolTable* SemanticAnalysis::get_symbol_table(const std::string& name) {
 void SemanticAnalysis::check_assignment(Node* n, std::shared_ptr<Type> lhs, std::shared_ptr<Type> rhs) {
   // lhs not pointer, rhs pointer
   if (!lhs->is_pointer() && rhs->is_pointer()) {
-    SemanticError::raise(n->get_loc(),"Cannot assign pointer to non-pointer");
+    SemanticError::raise(n->get_loc(), "Cannot assign pointer to non-pointer");
   } 
   
   // lhs is not l-value

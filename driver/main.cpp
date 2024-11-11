@@ -42,10 +42,6 @@
 #include "exceptions.h"
 #include "options.h"
 
-// TODO REMOVE
-#include <iostream>
-using namespace std;
-
 //! @file
 //! Driver program for `nearly_cc`.
 
@@ -249,7 +245,7 @@ void print_strconst_and_globals(Unit &unit) {
   for (auto i = unit.strconst_cbegin(); i != unit.strconst_cend(); ++i) {
     const StringConstant &strconst = *i;
     LiteralValue lv(strconst.get_content());
-    printf("%s: .string \"%s\"\n", strconst.get_label().c_str(), lv.get_str_value_escaped().c_str());
+    printf("%s: .string \"%s\"\n", strconst.get_label().c_str(), lv.get_str_value().c_str());
   }
 
   if (unit.has_global_variables())
@@ -380,6 +376,18 @@ void print_dataflow_cfg(Unit &unit) {
   }
 }
 
+// recursively visit AST nodes to find and save string literals
+void recursive_find_strings(std::vector<std::pair<std::string, Node*>>& str_vec, Node* n) {
+  if (n->get_tag() == AST_LITERAL_VALUE && n->get_kid(0)->get_tag() == TOK_STR_LIT) { // if STR_LIT
+    std::string to_add = n->get_kid(0)->get_str();
+    str_vec.push_back({to_add.substr(1, to_add.size() - 2), n}); // remove start and end quotes
+  } else { // otherwise explore child nodes
+    for (auto iter = n->cbegin(); iter != n->cend(); iter++) {
+      recursive_find_strings(str_vec, *iter);
+    }
+  }
+}
+
 // This function orchestrates parsing, semantic analysis, code generation,
 // etc.  It returns the value that should be returned from main as the
 // process's exit code.
@@ -409,9 +417,6 @@ int process_source_file(Options &options, const std::string &filename) {
   // We are now committed to performing semantic analysis
   unit.get_semantic_analysis().visit(unit.get_ast());
 
-  // TODO REMOVE
-  // print_symbol_tables(unit.get_semantic_analysis());
-
   if (ir_kind_goal == IRKind::SYMBOL_TABLE) {
     // Just print contents of symbol tables
     print_symbol_tables(unit.get_semantic_analysis());
@@ -421,8 +426,16 @@ int process_source_file(Options &options, const std::string &filename) {
   // At this point we are committed to doing some form of code
   // generation
 
-  // TODO: find all of the string constants in the AST
-  //       and add them to the Unit
+  // Find all of the string constants in AST and add them to the Unit
+  std::vector<std::pair<std::string, Node*>> str_constants;
+  for (auto i = unit.get_ast()->cbegin(); i != unit.get_ast()->cend(); ++i) {
+    recursive_find_strings(str_constants, *i); // recursively visit nodes to find string literals 
+  }
+  // for each string, add to unit and annotate its node with the constant's name
+  for (unsigned i = 0; i < str_constants.size(); i++) {
+    str_constants[i].second->set_str_lit_name("_str" + std::to_string(i)); 
+    unit.add_str_constant(StringConstant("_str" + std::to_string(i), str_constants[i].first));
+  }
 
   // Add global variables to the unit
   SymbolTable *global_symtab = unit.get_semantic_analysis().get_global_symtab();
@@ -440,7 +453,7 @@ int process_source_file(Options &options, const std::string &filename) {
       std::string fn_name = child->get_kid(1)->get_str();
       Symbol *fn_sym = global_symtab->lookup_local(fn_name);
       assert(fn_sym != nullptr);
-
+      
       // Create a Function to collect information about the function,
       // and provide a place to store intermediate representations,
       // storage allocation decisions, etc.
